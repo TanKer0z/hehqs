@@ -47,7 +47,6 @@ minetest.register_globalstep(function(dtime)
     end
 end)
 
--- Événement lorsque le joueur se connecte
 minetest.register_on_joinplayer(function(player)
     local player_money = loadPlayerMoney()
     local player_name = player:get_player_name()
