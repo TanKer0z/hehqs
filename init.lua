@@ -210,11 +210,6 @@ minetest.register_chatcommand("set_money", {
     description = "Set a player's money to the specified amount.",
     privs = { server = true },
     func = function(name, param)
-        local admin = minetest.get_player_by_name(name)
-        if not admin then
-            return false, "[System] Player not found."
-        end
-
         local target_name, amount = param:match("(%S+)%s+(%d+)")
         if not target_name or not amount then
             return false, "Usage: /set_money <playername> <amount>"
@@ -229,7 +224,7 @@ minetest.register_chatcommand("set_money", {
         target_money[target_name] = amount
         savePlayerMoney(target_money)
 
-        minetest.chat_send_player(target_name, "[System] Your balance has been set to " .. amount .. "$ by " .. name)
+        minetest.chat_send_player(target_name, "[System] Your balance has been set to " .. amount .. "$")
         minetest.chat_send_player(name, "[System] You set " .. target_name .. "'s balance to " .. amount .. "$")
 
         return true
