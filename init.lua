@@ -47,6 +47,7 @@ minetest.register_globalstep(function(dtime)
     end
 end)
 
+-- Événement lorsque le joueur se connecte
 minetest.register_on_joinplayer(function(player)
     local player_money = loadPlayerMoney()
     local player_name = player:get_player_name()
@@ -141,7 +142,7 @@ minetest.register_craftitem("hehqs:money_1", {
 
 
 
-minetest.register_chatcommand("give_money", {
+minetest.register_chatcommand("donate_money", {
     params = "<playername> <amount>",
     description = "Gives an amount of money to another player.",
     func = function(name, param)
@@ -204,6 +205,36 @@ minetest.register_chatcommand("give_money", {
     end,
 })
 
+minetest.register_chatcommand("set_money", {
+    params = "<playername> <amount>",
+    description = "Set a player's money to the specified amount.",
+    privs = { server = true },
+    func = function(name, param)
+        local admin = minetest.get_player_by_name(name)
+        if not admin then
+            return false, "[System] Player not found."
+        end
+
+        local target_name, amount = param:match("(%S+)%s+(%d+)")
+        if not target_name or not amount then
+            return false, "Usage: /set_money <playername> <amount>"
+        end
+
+        amount = tonumber(amount)
+        if not amount or amount < 0 then
+            return false, "[System] Invalid amount."
+        end
+
+        local target_money = loadPlayerMoney()
+        target_money[target_name] = amount
+        savePlayerMoney(target_money)
+
+        minetest.chat_send_player(target_name, "[System] Your balance has been set to " .. amount .. "$ by " .. name)
+        minetest.chat_send_player(name, "[System] You set " .. target_name .. "'s balance to " .. amount .. "$")
+
+        return true
+    end,
+})
 
 
 local special_nodes = {
