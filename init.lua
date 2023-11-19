@@ -84,8 +84,8 @@ minetest.register_chatcommand("money", {
 })
 
 minetest.register_chatcommand("out_money", {
-    params = "<amount>",
-    description = "Withdraw money from your balance and get money_1 items.",
+    params = "<money [1/5/10/100]> <amount>",
+    description = "Withdraw money from your balance.",
     func = function(name, param)
         local player = minetest.get_player_by_name(name)
         if not player then
@@ -93,7 +93,9 @@ minetest.register_chatcommand("out_money", {
         end
 
         local player_name = player:get_player_name()
-        local amount = tonumber(param)
+        local params = param:split(" ")
+        local denomination = params[1]
+        local amount = tonumber(params[2])
 
         if not amount or amount <= 0 then
             return false, "[System] Invalid amount."
@@ -101,15 +103,50 @@ minetest.register_chatcommand("out_money", {
 
         local player_money = loadPlayerMoney()
 
-        if player_money[player_name] and player_money[player_name] >= amount then
-            player_money[player_name] = player_money[player_name] - amount
+        local available_money = 0
+        if denomination == "1" then
+            available_money = player_money[player_name] or 0
+        elseif denomination == "5" then
+            available_money = (player_money[player_name] or 0) / 5
+        elseif denomination == "10" then
+            available_money = (player_money[player_name] or 0) / 10
+        elseif denomination == "100" then
+            available_money = (player_money[player_name] or 0) / 100
+        else
+            return false, "[System] Invalid denomination.| <money [1/5/10/100]> <amount>  "
+        end
+
+        if available_money >= amount then
+            local withdrawn_money = 0
+
+            if denomination == "1" then
+                withdrawn_money = amount
+                local money_1_count = math.floor(amount)
+                local player_inventory = player:get_inventory()
+                player_inventory:add_item("main", ItemStack("hehqs:money_1 " .. money_1_count))
+            elseif denomination == "5" then
+                withdrawn_money = amount * 5
+                local money_5_count = math.floor(amount)
+                local player_inventory = player:get_inventory()
+                player_inventory:add_item("main", ItemStack("hehqs:money_5 " .. money_5_count))
+            elseif denomination == "10" then
+                withdrawn_money = amount * 10
+                local money_10_count = math.floor(amount)
+                local player_inventory = player:get_inventory()
+                player_inventory:add_item("main", ItemStack("hehqs:money_10 " .. money_10_count))
+            elseif denomination == "100" then
+                withdrawn_money = amount * 100
+                local money_100_count = math.floor(amount)
+                local player_inventory = player:get_inventory()
+                player_inventory:add_item("main", ItemStack("hehqs:money_100 " .. money_100_count))
+            else
+                return false, "[System] Invalid denomination."
+            end
+
+            player_money[player_name] = player_money[player_name] - withdrawn_money
             savePlayerMoney(player_money)
 
-            local money_1_count = math.floor(amount)
-            local player_inventory = player:get_inventory()
-            player_inventory:add_item("main", ItemStack("hehqs:money_1 " .. money_1_count))
-
-            minetest.chat_send_player(player_name, "[System] You withdrew " .. amount .. "$ and received " .. money_1_count .. " Money 1 items. Your balance is now " .. player_money[player_name] .. "$.")
+            minetest.chat_send_player(player_name, "[System] You withdrew " .. withdrawn_money .. "$ and received corresponding Money items. Your balance is now " .. player_money[player_name] .. "$.")
         else
             return false, "[System] Insufficient balance."
         end
@@ -120,10 +157,12 @@ minetest.register_chatcommand("out_money", {
 
 
 
+
+
 minetest.register_craftitem("hehqs:money_1", {
-    description = "Hebsq Money",
+    description = "HMoney 1$",
     inventory_image = "money.png",
-    stack_max = 50000,
+    stack_max = 500,
     on_use = function(itemstack, user, pointed_thing)
         local player_name = user:get_player_name()
         local player_money = loadPlayerMoney()
@@ -139,6 +178,67 @@ minetest.register_craftitem("hehqs:money_1", {
         return itemstack
     end,
 })
+
+minetest.register_craftitem("hehqs:money_5", {
+    description = "Money 5$",
+    inventory_image = "money_5.png",
+    stack_max = 500,
+    on_use = function(itemstack, user, pointed_thing)
+        local player_name = user:get_player_name()
+        local player_money = loadPlayerMoney()
+        local current_money = player_money[player_name] or 0
+
+        local money_amount = itemstack:get_count()
+        player_money[player_name] = current_money + (money_amount * 5)
+        savePlayerMoney(player_money)
+
+        minetest.chat_send_player(player_name, "[System] You received " .. money_amount * 5 .. "$. Your balance is now " .. player_money[player_name] .. "$.")
+
+        itemstack:clear()
+        return itemstack
+    end,
+})
+
+minetest.register_craftitem("hehqs:money_10", {
+    description = "Money 10$",
+    inventory_image = "money_10.png",
+    stack_max = 500,
+    on_use = function(itemstack, user, pointed_thing)
+        local player_name = user:get_player_name()
+        local player_money = loadPlayerMoney()
+        local current_money = player_money[player_name] or 0
+
+        local money_amount = itemstack:get_count()
+        player_money[player_name] = current_money + (money_amount * 10)
+        savePlayerMoney(player_money)
+
+        minetest.chat_send_player(player_name, "[System] You received " .. money_amount * 10 .. "$. Your balance is now " .. player_money[player_name] .. "$.")
+
+        itemstack:clear()
+        return itemstack
+    end,
+})
+
+minetest.register_craftitem("hehqs:money_100", {
+    description = "Money 100$",
+    inventory_image = "money_100.png",
+    stack_max = 500,
+    on_use = function(itemstack, user, pointed_thing)
+        local player_name = user:get_player_name()
+        local player_money = loadPlayerMoney()
+        local current_money = player_money[player_name] or 0
+
+        local money_amount = itemstack:get_count()
+        player_money[player_name] = current_money + (money_amount * 100)
+        savePlayerMoney(player_money)
+
+        minetest.chat_send_player(player_name, "[System] You received " .. money_amount * 100 .. "$. Your balance is now " .. player_money[player_name] .. "$.")
+
+        itemstack:clear()
+        return itemstack
+    end,
+})
+
 
 
 
