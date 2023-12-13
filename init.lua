@@ -47,7 +47,6 @@ minetest.register_globalstep(function(dtime)
     end
 end)
 
--- Événement lorsque le joueur se connecte
 minetest.register_on_joinplayer(function(player)
     local player_money = loadPlayerMoney()
     local player_name = player:get_player_name()
@@ -342,6 +341,7 @@ local special_nodes = {
 
 minetest.register_on_dignode(function(pos, oldnode, digger)
     local node_name = oldnode.name
+    if digger and digger:is_player() then
     local player_name = digger:get_player_name()
     
     if special_nodes[node_name] then
@@ -350,5 +350,6 @@ minetest.register_on_dignode(function(pos, oldnode, digger)
         local player_money = loadPlayerMoney()
         player_money[player_name] = (player_money[player_name] or 0) + money
         savePlayerMoney(player_money)
+        end
     end
 end)
